@@ -2,7 +2,7 @@
 from ninja import Router
 from django.shortcuts import get_object_or_404
 from .models import Provider, Patient, Order
-from .schemas import ProviderIn, ProviderOut, PatientIn, PatientOut, OrderIn, OrderOut, PatientOrderOut
+from .schemas import ProviderIn, ProviderOut, PatientIn, PatientOut, OrderIn, OrderOut
 
 router = Router(tags=["Lamar API"])
 
@@ -18,18 +18,9 @@ def list_providers(request):
 
 
 # ---------- PATIENTS ----------
-@router.post("/patients", response=PatientOrderOut)
+@router.post("/patients", response=PatientOut)
 def create_patient(request, payload: PatientIn):
-    # Get or create the provider using name and NPI
-    provider, _ = Provider.objects.get_or_create(
-        npi=payload.provider_npi,
-        defaults={'name': payload.referring_provider}
-    )
-    # Update provider name if it changed (handles case where provider exists with different name)
-    if provider.name != payload.referring_provider:
-        provider.name = payload.referring_provider
-        provider.save()
-    
+    provider = get_object_or_404(Provider, id=payload.provider_id)
     patient = Patient.objects.create(
         first_name=payload.first_name,
         last_name=payload.last_name,
@@ -40,45 +31,11 @@ def create_patient(request, payload: PatientIn):
         records_text=payload.records_text,
         provider=provider,
     )
-    
-    # Check for existing similar orders and create new order
-    existing = Order.objects.filter(
-        patient=patient, medication_name__iexact=payload.medication_name
-    )
-    warning = None
-    if existing.exists():
-        warning = f"⚠️ Similar order for '{payload.medication_name}' already exists for this patient."
-    
-    order = Order.objects.create(
-        patient=patient,
-        medication_name=payload.medication_name
-    )
-    
-    return PatientOrderOut(
-        message="Patient and order created successfully" + (f". {warning}" if warning else ""),
-        patient_id=patient.id,
-        order_id=order.id,
-    )
+    return patient
 
 @router.get("/patients", response=list[PatientOut])
 def list_patients(request):
-    patients = Patient.objects.all()
-    return [
-        PatientOut(
-            id=p.id,
-            first_name=p.first_name,
-            last_name=p.last_name,
-            mrn=p.mrn,
-            primary_diagnosis=p.primary_diagnosis,
-            referring_provider=p.provider.name,
-            provider_npi=p.provider.npi,
-            provider_id=p.provider.id,
-            additional_diagnoses=p.additional_diagnoses or [],
-            medication_history=p.medication_history or [],
-            records_text=p.records_text or "",
-        )
-        for p in patients
-    ]
+    return Patient.objects.all()
 
 
 # ---------- ORDERS ----------

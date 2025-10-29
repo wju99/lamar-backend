@@ -14,14 +14,32 @@ class PatientIn(Schema):
     last_name: str
     mrn: str
     primary_diagnosis: str
-    provider_id: int
+    referring_provider: str
+    provider_npi: str
+    medication_name: str
     additional_diagnoses: List[str] = []
     medication_history: List[str] = []
     records_text: str = ""
 
 
-class PatientOut(PatientIn):
+class PatientOut(Schema):
     id: int
+    first_name: str
+    last_name: str
+    mrn: str
+    primary_diagnosis: str
+    referring_provider: str
+    provider_npi: str
+    provider_id: int  # Keep for backward compatibility and direct database reference
+    additional_diagnoses: List[str] = []
+    medication_history: List[str] = []
+    records_text: str = ""
+
+
+class PatientOrderOut(Schema):
+    message: str
+    patient_id: int
+    order_id: int
 
 class OrderIn(Schema):
     patient_id: int
