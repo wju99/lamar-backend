@@ -1,11 +1,24 @@
-annotated-types==0.7.0
-asgiref==3.10.0
+# Framework + API
 Django==5.2.7
 django-ninja==1.4.5
 djangorestframework==3.16.1
+
+# Validation / typing
 pydantic==2.12.3
 pydantic_core==2.41.4
-python-dotenv==1.2.1
-sqlparse==0.5.3
+annotated-types==0.7.0
 typing-inspection==0.4.2
 typing_extensions==4.15.0
+
+# Environment + database utils
+python-dotenv==1.2.1
+dj-database-url==2.3.0
+psycopg2-binary==2.9.10
+
+# Static files for production
+whitenoise==6.7.0
+
+# Web server
+gunicorn==23.0.0
+asgiref==3.10.0
+sqlparse==0.5.3
