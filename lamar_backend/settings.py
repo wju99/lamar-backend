@@ -30,7 +30,11 @@ SECRET_KEY = 'django-insecure-xj&zcy+*$g65p5ne-r29s$tp*euk3m%@az@+e2lttsi1ju$$&=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "lamar-backend-api.onrender.com"
+]
 
 
 # Application definition
