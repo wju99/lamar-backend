@@ -28,3 +28,6 @@ sqlparse==0.5.3
 
 # LLM integration
 openai>=1.51.0
+
+# PDF text extraction
+pypdf==4.3.1

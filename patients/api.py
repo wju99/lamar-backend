@@ -1,5 +1,6 @@
 # patients/api.py
-from ninja import Router
+from ninja import Router, File
+from ninja.files import UploadedFile
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from django.http import JsonResponse, HttpResponse
@@ -7,6 +8,7 @@ from ninja.errors import HttpError
 from .models import Provider, Patient, Order
 from .schemas import ProviderIn, ProviderOut, PatientIn, PatientOut, OrderIn, OrderOut, PatientOrderOut
 from .care_plan_service import generate_care_plan_text, format_care_plan_with_header
+from pypdf import PdfReader
 
 router = Router(tags=["Lamar API"])
 
@@ -143,6 +145,26 @@ def create_patient(request, payload: PatientIn):
         patient_id=patient.id,
         order_id=order.id,
     )
+
+@router.post("/records/extract")
+def extract_records_text(request, file: UploadedFile = File(...)):
+    """
+    Accepts a PDF upload and extracts plain text from it.
+    Returns { extracted_text: str }.
+    """
+    try:
+        # UploadedFile.file is a file-like object positioned at start
+        reader = PdfReader(file)
+        texts = []
+        for page in reader.pages:
+            try:
+                texts.append(page.extract_text() or "")
+            except Exception:
+                continue
+        extracted_text = "\n\n".join([t.strip() for t in texts if t is not None])
+        return {"extracted_text": extracted_text}
+    except Exception as e:
+        return JsonResponse({"error": f"Failed to extract text: {str(e)}"}, status=400)
 
 @router.get("/patients/{patient_id}/orders/{order_id}/care-plan")
 def get_care_plan(request, patient_id: int, order_id: int):
