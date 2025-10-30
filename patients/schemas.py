@@ -20,6 +20,9 @@ class PatientIn(Schema):
     additional_diagnoses: List[str] = []
     medication_history: List[str] = []
     records_text: str = ""
+    confirm_patient_name_mismatch: bool = False  # Flag to confirm proceeding when MRN exists but patient names don't match
+    confirm_provider_name_mismatch: bool = False  # Flag to confirm proceeding when NPI exists but provider name doesn't match
+    confirm_duplicate_order: bool = False  # Flag to confirm proceeding when duplicate order exists
 
 
 class PatientOut(Schema):
@@ -40,6 +43,8 @@ class PatientOrderOut(Schema):
     message: str
     patient_id: int
     order_id: int
+    requires_confirmation: bool = False  # Flag indicating if user confirmation is needed
+    confirmation_message: Optional[str] = None  # Message to show in confirmation modal
 
 class OrderIn(Schema):
     patient_id: int
