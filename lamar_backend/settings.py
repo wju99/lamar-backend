@@ -142,6 +142,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://lamar-frontend-app.vercel.app",
+    "https://lamar-web-app.vercel.app",
 ]
 
 # Allow credentials (cookies, authorization headers, etc.)
@@ -171,4 +172,12 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+]
+
+# CSRF trusted origins for browser POST/OPTIONS from frontend
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://lamar-frontend-app.vercel.app",
+    "https://lamar-web-app.vercel.app",
 ]
