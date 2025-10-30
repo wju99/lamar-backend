@@ -15,7 +15,16 @@ router = Router(tags=["Lamar API"])
 # ---------- PROVIDERS ----------
 @router.post("/providers", response=ProviderOut)
 def create_provider(request, payload: ProviderIn):
-    provider, _ = Provider.objects.get_or_create(**payload.dict())
+    """Create or update a provider by NPI.
+    If a provider with the given NPI exists, update the name if different.
+    """
+    provider, created = Provider.objects.get_or_create(
+        npi=payload.npi,
+        defaults={"name": payload.name},
+    )
+    if not created and provider.name != payload.name:
+        provider.name = payload.name
+        provider.save()
     return provider
 
 @router.get("/providers", response=list[ProviderOut])
