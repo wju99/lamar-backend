@@ -1,6 +1,6 @@
-# Lamar Backend (Django + Django Ninja)
+# Backend
 
-Backend API for the Lamar Health care plan intake app. Implements patient/order creation with confirmation flows, provider upsert by NPI, PDF records text extraction, and care plan generation via LLM.
+Backend API for the Lamar Health care plan intake app. Implements patient/order creation with confirmation flows, provider upsert by NPI, PDF records text extraction, and care plan generation via OpenAI.
 
 ## Tech
 - Django 5
