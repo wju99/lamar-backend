@@ -2,10 +2,11 @@
 from ninja import Router
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from ninja.errors import HttpError
 from .models import Provider, Patient, Order
 from .schemas import ProviderIn, ProviderOut, PatientIn, PatientOut, OrderIn, OrderOut, PatientOrderOut
+from .care_plan_service import generate_care_plan_text, format_care_plan_with_header
 
 router = Router(tags=["Lamar API"])
 
@@ -136,11 +137,48 @@ def create_patient(request, payload: PatientIn):
     else:
         message = "Patient and order created successfully."
     
+    # Return success immediately - care plan generation happens via separate endpoint
     return PatientOrderOut(
         message=message,
         patient_id=patient.id,
         order_id=order.id,
     )
+
+@router.get("/patients/{patient_id}/orders/{order_id}/care-plan")
+def get_care_plan(request, patient_id: int, order_id: int):
+    """
+    Generate and download care plan as a text file for a specific order.
+    """
+    patient = get_object_or_404(Patient, id=patient_id)
+    order = get_object_or_404(Order, id=order_id, patient=patient)
+    
+    try:
+        # Generate care plan text using LLM
+        care_plan_text = generate_care_plan_text(patient, order)
+        
+        # Format with header
+        formatted_text = format_care_plan_with_header(patient, order, care_plan_text)
+        
+        # Create HTTP response with text file
+        filename = f"care_plan_{patient.first_name}_{patient.last_name}_{patient.mrn}_{order.created_at.strftime('%Y%m%d')}.txt"
+        
+        response = HttpResponse(
+            formatted_text,
+            content_type='text/plain; charset=utf-8'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to generate care plan for order {order_id}: {str(e)}")
+        
+        # Return error response
+        return JsonResponse(
+            {"error": f"Failed to generate care plan: {str(e)}"},
+            status=500
+        )
 
 @router.get("/patients", response=list[PatientOut])
 def list_patients(request):
